@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ruleset name="Webshr Core PHP Coding Standards">
+  <description>Custom coding standards for Webshr Core</description>
+
+  <!-- Ignore vendor directory -->
+  <exclude-pattern>./vendor/*</exclude-pattern>
+
+  <file>.</file>
+
+  <!-- Scan these file types -->
+  <arg name="extensions" value="php"/>
+  <arg name="colors"/>
+
+  <!-- Use WordPress as the base but with customizations -->
+  <rule ref="PSR12">
+    <!-- Allow spaces instead of tabs for indentation -->
+    <exclude name="Generic.WhiteSpace.DisallowSpaceIndent"/>
+
+    <!-- Allow WordPress method naming conventions (snake_case) -->
+    <exclude name="PSR1.Methods.CamelCapsMethodName"/>
+
+    <!-- Allow WordPress class naming conventions with underscores -->
+    <exclude name="Squiz.Classes.ValidClassName.NotCamelCaps"/>
+
+    <!-- Optional: Exclude other rules you want to ignore -->
+    <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.SpaceBeforeOpenParen"/>
+    <exclude name="Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine"/>
+  </rule>
+
+  <!-- Explicitly enable space indentation -->
+  <rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
+
+  <!-- Specify indentation size if needed -->
+  <rule ref="Generic.WhiteSpace.ScopeIndent">
+    <properties>
+      <property name="indent" value="4"/>
+      <property name="tabIndent" value="false"/>
+    </properties>
+  </rule>
+
+  <!-- Use short array syntax -->
+  <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+
+  <!-- Show sniff codes in all reports -->
+  <arg value="s"/>
+</ruleset>
