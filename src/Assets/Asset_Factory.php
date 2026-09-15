@@ -16,7 +16,7 @@ namespace Webshr\Core\Assets;
 
 use Webshr\Core\Assets\Asset\Asset;
 use Webshr\Core\Assets\Asset\Json_Asset;
-use Webshr\Core\Assets\Asset\PHP_Asset;
+use Webshr\Core\Assets\Asset\Php_Asset;
 use Webshr\Core\Assets\Asset\Meta_Asset;
 use Webshr\Core\Assets\Asset\Svg_Asset;
 use Webshr\Core\Assets\Contracts\Asset as Asset_Interface;
@@ -73,11 +73,11 @@ class Asset_Factory
     }
 
     /**
-     * Create PHP_Asset instance.
+     * Create Php_Asset instance.
      */
-    protected static function create_php_asset(string $path, string $uri): PHP_Asset
+    protected static function create_php_asset(string $path, string $uri): Php_Asset
     {
-        return new PHP_Asset($path, $uri);
+        return new Php_Asset($path, $uri);
     }
 
     /**

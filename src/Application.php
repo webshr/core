@@ -21,7 +21,6 @@ use Webshr\Core\Utility\Hash;
 use Webshr\Core\Assets\Manager as Assets_Manager;
 use Webshr\Core\Modules\Manager as Modules_Manager;
 use Webshr\Core\Support\Traits\Aliases as Aliases_Trait;
-use Webshr\Core\Support\Traits\Application as App_Trait;
 use Webshr\Core\Contracts\Application as Application_Interface;
 
 use function Webshr\Core\Filesystem\join_paths;
@@ -32,7 +31,6 @@ use function Webshr\Core\Filesystem\join_paths;
 class Application implements Application_Interface
 {
     use Aliases_Trait;
-    use App_Trait;
 
     /**
      * The core framework version.
@@ -352,8 +350,9 @@ class Application implements Application_Interface
             $this->instance("path.{$key}", $path);
         }
 
-        $this->use_lang_path(is_dir($directory = $this->paths['resources'] . '/lang')
-            ? $directory
+        $resources_lang = isset($this->paths['resources']) ? $this->paths['resources'] . '/lang' : null;
+        $this->use_lang_path($resources_lang !== null && is_dir($resources_lang)
+            ? $resources_lang
             : $this->paths['base'] . '/lang');
     }
 
@@ -393,12 +392,12 @@ class Application implements Application_Interface
             'bundles',
         ];
         foreach ($manifests as $key => $manifest) {
-            foreach ($manifest as $manifest => $value) {
-                if (! in_array($manifest, $supported_manifest_keys)) {
-                    throw new \Exception("The {$manifest} path type is not supported.");
+            foreach ($manifest as $type => $value) {
+                if (! in_array($type, $supported_manifest_keys)) {
+                    throw new \Exception("The {$type} path type is not supported.");
                 }
 
-                $this->manifests[$key][$manifest] = rtrim($value, '\\/');
+                $this->manifests[$key][$type] = rtrim($value, '\\/');
             }
         }
 
@@ -571,7 +570,7 @@ class Application implements Application_Interface
     protected function register_core_managers()
     {
         $this->assets_manager = new Assets_Manager();
-        $this->module_manager = new Modules_Manager();
+        $this->module_manager = new Modules_Manager([], $this);
     }
 
     /**
@@ -605,7 +604,7 @@ class Application implements Application_Interface
         }
 
         foreach ($this->modules as $key => $module) {
-            $this->module_manager->register($key, new $module());
+            $this->module_manager->register($key, new $module($this));
             $this->registered_modules[$key] = $module;
         }
     }
@@ -619,24 +618,20 @@ class Application implements Application_Interface
     public function boot_modules()
     {
         foreach ($this->module_manager->modules() as $key => $module) {
-            // Check if the module is already loaded
             if (isset($this->loaded_modules[$key])) {
                 continue;
-                // Skip already loaded modules
             }
-
-            // Boot the module
-            $this->boot_module($module);
-            $this->loaded_modules[$key] = $module;
-            // Register the module if it can be registered
             if ($module->can_register()) {
                 $module->register();
             }
+        }
 
-            // If the application has already booted, call the boot method on the module
-            if ($this->is_booted()) {
-                $this->boot_module($module);
+        foreach ($this->module_manager->modules() as $key => $module) {
+            if (isset($this->loaded_modules[$key])) {
+                continue;
             }
+            $this->boot_module($module);
+            $this->loaded_modules[$key] = $module;
         }
     }
 
@@ -676,7 +671,10 @@ class Application implements Application_Interface
     public function get_modules($module)
     {
         $name = is_string($module) ? $module : get_class($module);
-        return Arriable::where($this->modules, fn($value) => $value instanceof $name);
+        return Arriable::where(
+            $this->module_manager->modules(),
+            fn($value) => $value instanceof $name
+        );
     }
 
     /**
@@ -688,18 +686,6 @@ class Application implements Application_Interface
     public function resolve_module($module)
     {
         return $this->module_manager->module($module);
-    }
-
-    /**
-     * Mark the given module as registered.
-     *
-     * @param  \Webshr\Core\Module  $module
-     * @return void
-     */
-    protected function mark_as_registered($module)
-    {
-        $this->modules[] = $module;
-        $this->loaded_modules[get_class($module)] = true;
     }
 
     /**
@@ -857,7 +843,7 @@ class Application implements Application_Interface
             // Handle the case where the callback is a string in the format 'Class@method'
             if (strpos($callback, '@') !== false) {
                 list($class, $method) = explode('@', $callback);
-                $callback               = [new $class(), $method];
+                $callback               = [new $class($this), $method];
             } elseif ($default_method) {
                 $callback = [new $callback(), $default_method];
             } else {
@@ -918,10 +904,21 @@ class Application implements Application_Interface
      *
      * @throws BadMethodCallException Thrown if the theme method does not exist.
      */
+    public function use_aliases(array $aliases): static
+    {
+        foreach ($aliases as $name => $target) {
+            $this->alias($name, $target);
+        }
+        return $this;
+    }
+
     public function __call(string $method, array $args): mixed
     {
         $resolved = $this->resolve($method);
         if (! $resolved) {
+            if ($this->has_alias($method)) {
+                return $this->call_alias($method, $args);
+            }
             throw new BadMethodCallException(
                 sprintf(__('The method %s does not exist.', 'webshr'), 'app()->' . $method . '()'),
             );

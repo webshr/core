@@ -92,7 +92,7 @@ trait Aliases
      * @param array  $parameters
      * @return mixed
      */
-    public function __call($method, $parameters)
+    public function call_alias($method, $parameters)
     {
         if (! $this->has_alias($method)) {
             throw new BadMethodCallException("Method {$method} does not exist.");
@@ -104,7 +104,7 @@ trait Aliases
             return call_user_func_array($alias['target']->bindTo($this, static::class), $parameters);
         }
 
-        $target = $this->resolve($alias['target']);
+        $target = $this->resolve($alias['target']) ?? $this->resolve_alias_class($alias['target']);
 
         if (! empty($alias['method'])) {
             return call_user_func_array([$target, $alias['method']], $parameters);
@@ -114,10 +114,41 @@ trait Aliases
     }
 
     /**
+     * Resolve an alias whose target is a class name rather than a binding key.
+     *
+     * Returns an already-bound instance of that class if one exists,
+     * otherwise a new instance constructed with this container.
+     *
+     * @param  mixed  $target
+     * @return object|null
+     */
+    protected function resolve_alias_class($target)
+    {
+        if (! is_string($target) || ! class_exists($target)) {
+            return null;
+        }
+
+        foreach ($this->bindings() as $binding) {
+            if ($binding instanceof $target) {
+                return $binding;
+            }
+        }
+
+        return new $target($this);
+    }
+
+    /**
      * Resolve a dependency from the IoC container.
      *
      * @param  string     $key
      * @return mixed|null
      */
     abstract public function resolve($key);
+
+    /**
+     * Get all container bindings.
+     *
+     * @return array
+     */
+    abstract public function bindings(): array;
 }

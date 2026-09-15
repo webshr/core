@@ -62,10 +62,10 @@ function app($abstract = null, array $parameters = [])
 /**
  * Require files from a directory
  *
- * @param  string|null $path
+ * @param  string $dir
  * @return void
  */
-function require_files(?string $dir = null): void
+function require_files(string $dir): void
 {
     $loader = new Loader();
     $loader->load($dir);
@@ -306,8 +306,10 @@ function remove_actions(iterable $actions, $callback, $priority = 10)
  */
 function wp_die($message, $subtitle = '', $title = '', $footer = '')
 {
-    $title   = $title ?: __('WordPress &rsaquo; Error', 'webshr');
-    $footer  = $footer ?: '<a href="https://webshore.eu/">Webshore</a>';
-    $message = "<h1>{$title}<br><small>{$subtitle}</small></h1><p>{$message}</p><p>{$footer}</p>";
+    $title    = wp_kses_post($title ?: __('WordPress &rsaquo; Error', 'webshr'));
+    $subtitle = wp_kses_post($subtitle);
+    $footer   = wp_kses_post($footer ?: '<a href="https://webshore.eu/">Webshore</a>');
+    $message  = wp_kses_post($message);
+    $message  = "<h1>{$title}<br><small>{$subtitle}</small></h1><p>{$message}</p><p>{$footer}</p>";
     \wp_die($message, $title);
 }

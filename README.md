@@ -42,7 +42,7 @@ $bootloader->boot();
 ### Using the Application Container
 
 ```php
-use Webshr\Core\app;
+use function Webshr\Core\app;
 
 // Get the application instance
 $app = app();
@@ -160,7 +160,7 @@ Str::ends_with('Hello World', 'World'); // true
 // String extraction
 Str::before('user@example.com', '@'); // 'user'
 Str::after('user@example.com', '@'); // 'example.com'
-Str::between('Hello [World]', '[', ']'); // 'World'
+Str::between_first('Hello [World]', '[', ']'); // 'World'
 
 // Pattern matching
 Str::is('admin/*', 'admin/users'); // true

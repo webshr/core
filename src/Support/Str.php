@@ -18,6 +18,8 @@ use RuntimeException;
 
 class Str
 {
+    private const TRIM_UNICODE_CLASS = '\s\x{FEFF}\x{200B}\x{200E}';
+
     /**
      * Check if a given substring is present within a subject string.
      *
@@ -369,8 +371,8 @@ class Str
         if ($charlist === null) {
             $trim_default_characters = " \n\r\t\v\0";
 
-            $pattern = '~^[\s\x{FEFF}\x{200B}\x{200E}' . $trim_default_characters . ']+'
-                . '|[\s\x{FEFF}\x{200B}\x{200E}' . $trim_default_characters . ']+$~u';
+            $pattern = '~^[' . self::TRIM_UNICODE_CLASS . $trim_default_characters . ']+'
+                . '|[' . self::TRIM_UNICODE_CLASS . $trim_default_characters . ']+$~u';
 
             return preg_replace($pattern, '', $value) ?? trim($value);
         }
@@ -390,7 +392,7 @@ class Str
         if ($charlist === null) {
             $trim_default_characters = " \n\r\t\v\0";
 
-            $pattern = '~^[\s\x{FEFF}\x{200B}\x{200E}' . $trim_default_characters . ']+~u';
+            $pattern = '~^[' . self::TRIM_UNICODE_CLASS . $trim_default_characters . ']+~u';
 
             return preg_replace($pattern, '', $value) ?? ltrim($value);
         }

@@ -1,0 +1,6 @@
+{
+    "key": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+    "plaintext": "hello",
+    "payload": "eyJpdiI6ImJQODU3dTBwNit5cklacDBURm5rbEE9PSIsInZhbHVlIjoieFJLbHZKeGk0eGdjM2xtd2ozYTd6QT09IiwibWFjIjoiMmMwODljM2UwOTAyODFmNjRhNTkwYzNlM2ZmM2I2ZTExM2NjMjNjN2I4MGUyYTZjY2VkM2ZiYTE2NmYyOTdmMyIsInRhZyI6IiJ9",
+    "generated_by": "php scratchpad/generate_fixture.php (unmodified Encryption class, commit 45fff28)"
+}

@@ -57,32 +57,36 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
     public function __construct(Application_Interface $app)
     {
         $key    = $app->get('key');
-        $cipher = $app->get('cipher') ?? 'aes-256-cbc';
-        // Ensure the key length matches the expected length for the cipher
-        $key = $this->ensure_key_length($key, $cipher);
-        if (! static::supported($key, $cipher)) {
+        $cipher = strtolower($app->get('cipher') ?? 'aes-256-cbc');
+
+        if (! is_string($key) || $key === '') {
+            throw new RuntimeException(
+                'No encryption key configured.'
+                . ' Set app.key (or APP_KEY) to a random string.'
+            );
+        }
+
+        if (! isset(self::$supported_ciphers[$cipher])) {
             $ciphers = implode(', ', array_keys(self::$supported_ciphers));
             throw new RuntimeException(
                 "Unsupported cipher or incorrect key length. Supported ciphers are: {$ciphers}."
             );
         }
 
-        $this->key    = $key;
         $this->cipher = $cipher;
+        $this->key    = $this->derive_key($key, $cipher);
     }
 
     /**
-     * Ensure the key length matches the expected length for the cipher.
+     * Compatibility derivation for WordPress salts whose byte length
+     * does not match the cipher; output is hex-truncated SHA-256.
      *
-     * @param string $key
-     * @param string $cipher
-     * @return string
+     * @see .claude/tasks/fix-code-review-findings.md (M1 decision)
      */
-    private function ensure_key_length(string $key, string $cipher): string
+    private function derive_key(string $key, string $cipher): string
     {
-        $expected_length = self::$supported_ciphers[strtolower($cipher)]['size'];
+        $expected_length = self::$supported_ciphers[$cipher]['size'];
         if (mb_strlen($key, '8bit') !== $expected_length) {
-            // Truncate or hash the key to the required length
             $key = substr(hash('sha256', $key), 0, $expected_length);
         }
         return $key;
@@ -97,11 +101,12 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
      */
     public static function supported($key, $cipher)
     {
-        if (! isset(self::$supported_ciphers[strtolower($cipher)])) {
+        $cipher = strtolower($cipher);
+        if (! isset(self::$supported_ciphers[$cipher])) {
             return false;
         }
 
-        return mb_strlen($key, '8bit') === self::$supported_ciphers[strtolower($cipher)]['size'];
+        return mb_strlen($key, '8bit') === self::$supported_ciphers[$cipher]['size'];
     }
 
     /**
@@ -124,10 +129,10 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
             throw new Encrypt_Exception('The OpenSSL extension is not loaded.');
         }
 
-        $iv = random_bytes(openssl_cipher_iv_length(strtolower($this->cipher)));
+        $iv = random_bytes(openssl_cipher_iv_length($this->cipher));
         $value = \openssl_encrypt(
             $serialize ? serialize($value) : $value,
-            strtolower($this->cipher),
+            $this->cipher,
             $this->key,
             0,
             $iv,
@@ -139,7 +144,7 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
 
         $iv  = base64_encode($iv);
         $tag = base64_encode($tag ?? '');
-        $mac = self::$supported_ciphers[strtolower($this->cipher)]['aead']
+        $mac = self::$supported_ciphers[$this->cipher]['aead']
             ? '' // For AEAD-algorithms, the tag / MAC is returned by openssl_encrypt...
             : $this->hash($iv, $value, $this->key);
         $json = json_encode(compact('iv', 'value', 'mac', 'tag'), JSON_UNESCAPED_SLASHES);
@@ -178,7 +183,7 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
                 continue;
             }
 
-            $decrypted = \openssl_decrypt($payload['value'], strtolower($this->cipher), $key, 0, $iv, $tag ?? '');
+            $decrypted = \openssl_decrypt($payload['value'], $this->cipher, $key, 0, $iv, $tag ?? '');
             if ($decrypted !== false) {
                 break;
             }
@@ -226,10 +231,6 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
      */
     protected function get_json_payload(string $payload): array
     {
-        if (! is_string($payload)) {
-            throw new Decrypt_Exception('The payload is invalid.');
-        }
-
         $payload = json_decode(base64_decode($payload), true);
         // If the payload is not valid JSON or does not have the proper keys set we will
         // assume it is invalid and bail out of the routine since we will not be able
@@ -263,7 +264,7 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
             return false;
         }
 
-        return strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length(strtolower($this->cipher));
+        return strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher);
     }
 
     /**
@@ -297,11 +298,11 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
      */
     protected function ensure_tag_is_valid($tag)
     {
-        if (self::$supported_ciphers[strtolower($this->cipher)]['aead'] && strlen($tag) !== 16) {
+        if (self::$supported_ciphers[$this->cipher]['aead'] && ($tag === null || strlen($tag) !== 16)) {
             throw new Decrypt_Exception('Could not decrypt the data.');
         }
 
-        if (! self::$supported_ciphers[strtolower($this->cipher)]['aead'] && is_string($tag)) {
+        if (! self::$supported_ciphers[$this->cipher]['aead'] && is_string($tag)) {
             throw new Decrypt_Exception('Unable to use tag because the cipher algorithm does not support AEAD.');
         }
     }
@@ -313,7 +314,7 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
      */
     protected function should_validate_mac()
     {
-        return ! self::$supported_ciphers[strtolower($this->cipher)]['aead'];
+        return ! self::$supported_ciphers[$this->cipher]['aead'];
     }
 
     /**
@@ -348,16 +349,12 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
      */
     public function previous_keys(array $keys)
     {
+        $derived = [];
         foreach ($keys as $key) {
-            if (! static::supported($key, $this->cipher)) {
-                $ciphers = implode(', ', array_keys(self::$supported_ciphers));
-                throw new RuntimeException(
-                    "Unsupported cipher or incorrect key length. Supported ciphers are: {$ciphers}."
-                );
-            }
+            $derived[] = $this->derive_key($key, $this->cipher);
         }
 
-        $this->previous_keys = $keys;
+        $this->previous_keys = $derived;
         return $this;
     }
 }

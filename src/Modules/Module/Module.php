@@ -12,6 +12,7 @@
 namespace Webshr\Core\Modules\Module;
 
 use Closure;
+use Webshr\Core\Contracts\Application as Application_Interface;
 use Webshr\Core\Modules\Contracts\Module as Module_Interface;
 use Webshr\Core\Modules\Contracts\Deferrable_Module as Deferrable_Module_Interface;
 
@@ -47,12 +48,9 @@ abstract class Module implements Module_Interface
      */
     protected $deferred = false;
     /**
-     * Create a new module instance.
-     *
-     * @param  \Webshr\Core\Application  $app
-     * @return void
+     * @param  Application_Interface|null  $app
      */
-    public function __construct($app)
+    public function __construct(?Application_Interface $app = null)
     {
         $this->app = $app;
     }

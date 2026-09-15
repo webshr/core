@@ -12,6 +12,7 @@
 namespace Webshr\Core\Modules;
 
 use InvalidArgumentException;
+use Webshr\Core\Contracts\Application as Application_Interface;
 use Webshr\Core\Modules\Contracts\Module as Module_Interface;
 
 /**
@@ -27,19 +28,18 @@ class Manager
      */
     protected $modules = [];
     /**
-     * Assets Config
-     *
      * @var array
      */
     protected $config;
     /**
-     * Constructor.
-     *
-     * @param array $modules Associative array of modules.
+     * @var Application_Interface|null
      */
-    public function __construct($config = [])
+    protected ?Application_Interface $app;
+
+    public function __construct($config = [], ?Application_Interface $app = null)
     {
         $this->config = $config;
+        $this->app = $app;
     }
 
     /**
@@ -88,7 +88,7 @@ class Manager
         // If there's no handler in the config, use the module class directly from the modules array
         if (isset($this->config['modules'][$name])) {
             $moduleClass = $this->config['modules'][$name];
-            return new $moduleClass($this->app ?? null);
+            return new $moduleClass($this->app);
         }
 
         throw new InvalidArgumentException("Module '{$name}' has no handler defined and could not be resolved.");
@@ -99,6 +99,9 @@ class Manager
      */
     protected function get_config(string $name): array
     {
+        if (! isset($this->config['modules'][$name])) {
+            throw new InvalidArgumentException("Module '{$name}' is not configured.");
+        }
         return $this->config['modules'][$name];
     }
 }

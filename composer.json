@@ -12,9 +12,6 @@
     "keywords": [
         "wordpress"
     ],
-    "bin": [
-        "bin/core"
-    ],
     "support": {},
     "autoload": {
         "psr-4": {

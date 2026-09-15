@@ -109,6 +109,9 @@ class Manager
      */
     protected function get_config(string $name): array
     {
+        if (! isset($this->config['manifests'][$name])) {
+            throw new Manifest_Not_Found_Exception("Manifest '{$name}' is not configured.");
+        }
         return $this->config['manifests'][$name];
     }
 }

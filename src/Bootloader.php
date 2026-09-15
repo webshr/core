@@ -48,12 +48,6 @@ class Bootloader
      */
     protected string $base_path = '';
     /**
-     * The configuration settings.
-     *
-     * @var array
-     */
-    protected array $configss;
-    /**
      * Create a new bootloader instance.
      *
      * @param  \Webshr\Core\Application|null  $app
@@ -135,6 +129,7 @@ class Bootloader
         $this->app->use_default_manifest($this->default_manifest());
         $this->app->use_manifests($this->manifests());
         $this->app->use_modules($this->modules());
+        $this->app->use_aliases($this->aliases());
         return $this->app;
     }
 
@@ -237,6 +232,6 @@ class Bootloader
      */
     protected function aliases(): array
     {
-        return $this->config->get('app.aliases');
+        return $this->config->get('app.aliases') ?? [];
     }
 }

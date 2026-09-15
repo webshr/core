@@ -1,0 +1,11 @@
+{
+    "theme": {
+        "js": {
+            "theme": "theme.js"
+        },
+        "css": {
+            "theme": "theme.css"
+        },
+        "dependencies": ["wp-i18n"]
+    }
+}

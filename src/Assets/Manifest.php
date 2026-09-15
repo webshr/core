@@ -116,11 +116,7 @@ class Manifest implements Manifest_Interface
         $relativePath = $this->assets[$key] ?? $key;
         $path = Str::before("{$this->path}/{$relativePath}", '?');
         $uri  = "{$this->uri}/{$relativePath}";
-        if (! isset($this->metas[$key])) {
-            $meta = Asset_Factory::create($path, $uri, 'meta');
-        } else {
-            $meta = new Meta($key, $this->metas[$key], $this->path, $this->uri);
-        }
+        $meta = Asset_Factory::create($path, $uri, 'meta');
 
         // Cache the created meta asset
         $this->metas[$key] = $meta;

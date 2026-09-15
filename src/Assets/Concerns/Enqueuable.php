@@ -179,7 +179,8 @@ trait Enqueuable
      */
     public function inline($contents, $position = 'after')
     {
-        if (! $handles = array_keys($this->js()->keys()->toArray())) {
+        $handles = array_keys($this->js());
+        if (empty($handles)) {
             return $this;
         }
 
@@ -201,7 +202,8 @@ trait Enqueuable
      */
     public function localize($name, $object)
     {
-        if (! $handles = $this->js()->keys()->toArray()) {
+        $handles = array_keys($this->js());
+        if (empty($handles)) {
             return $this;
         }
 
@@ -221,10 +223,9 @@ trait Enqueuable
     {
         $domain ??= wp_get_theme()->get('TextDomain');
         $path ??= lang_path();
-        $this->js()->keys()->each(function ($handle) use ($domain, $path) {
-
+        foreach (array_keys($this->js()) as $handle) {
             wp_set_script_translations("{$this->id}/{$handle}", $domain, $path);
-        });
+        }
         return $this;
     }
 
