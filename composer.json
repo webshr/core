@@ -50,9 +50,9 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {
-        "lint": "pint --test",
-        "lint:fix": "pint",
-        "test": "pest",
-        "coverage": "XDEBUG_MODE=coverage pest --coverage --coverage-html=coverage"
+        "lint": "phpcs",
+        "lint:fix": "phpcbf",
+        "test": "phpunit",
+        "coverage": "phpunit --coverage-html=coverage"
     }
 }

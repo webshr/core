@@ -56,8 +56,13 @@ class Manifest implements Manifest_Interface
     /**
      * Create a new manifest instance.
      */
-    public function __construct(string $path, string $uri, array $assets = [], ?array $bundles = null, ?array $metas = null)
-    {
+    public function __construct(
+        string $path,
+        string $uri,
+        array $assets = [],
+        ?array $bundles = null,
+        ?array $metas = null
+    ) {
         $this->path    = $path;
         $this->uri     = $uri;
         $this->bundles = $bundles;

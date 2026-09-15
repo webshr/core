@@ -179,8 +179,14 @@ class Application implements Application_Interface
      *
      * @param Application $instance
      */
-    public function __construct($encryption = null, $base_path = null, $paths = null, $default_manifest = null, $manifests = null, $modules = null)
-    {
+    public function __construct(
+        $encryption = null,
+        $base_path = null,
+        $paths = null,
+        $default_manifest = null,
+        $manifests = null,
+        $modules = null
+    ) {
 
         if ($encryption) {
             $this->use_encryption((array) $encryption);
@@ -916,7 +922,9 @@ class Application implements Application_Interface
     {
         $resolved = $this->resolve($method);
         if (! $resolved) {
-            throw new BadMethodCallException(sprintf(__('The method %s does not exist.', 'webshr'), 'app()->' . $method . '()'),);
+            throw new BadMethodCallException(
+                sprintf(__('The method %s does not exist.', 'webshr'), 'app()->' . $method . '()'),
+            );
         }
 
         // If the resolved service is an invokable object, call it

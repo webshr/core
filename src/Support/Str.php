@@ -198,7 +198,8 @@ class Str
      * @param string $string The string to extract the substring from.
      * @param string $from The starting delimiter string.
      * @param string $to The ending delimiter string.
-     * @return string The extracted substring. If either "from" or "to" is an empty string, the original subject is returned.
+     * @return string The extracted substring. If either "from" or "to" is an empty string,
+     *                the original subject is returned.
      */
     public static function between_first(string $string, string $from, string $to): string
     {
@@ -281,10 +282,11 @@ class Str
      *
      * @param string $string The input string.
      * @param int $start The starting position.
-     * @param int|null $length The length of the substring. If omitted, the substring will extend to the end of the string.
+     * @param int|null $length The length of the substring. If omitted, the substring will extend
+     *                         to the end of the string.
      * @return string The extracted substring.
      */
-    public static function substr(string $string, int $start, int $length = null): string
+    public static function substr(string $string, int $start, ?int $length = null): string
     {
         return mb_substr($string, $start, $length, 'UTF-8');
     }
@@ -367,7 +369,10 @@ class Str
         if ($charlist === null) {
             $trim_default_characters = " \n\r\t\v\0";
 
-            return preg_replace('~^[\s\x{FEFF}\x{200B}\x{200E}' . $trim_default_characters . ']+|[\s\x{FEFF}\x{200B}\x{200E}' . $trim_default_characters . ']+$~u', '', $value) ?? trim($value);
+            $pattern = '~^[\s\x{FEFF}\x{200B}\x{200E}' . $trim_default_characters . ']+'
+                . '|[\s\x{FEFF}\x{200B}\x{200E}' . $trim_default_characters . ']+$~u';
+
+            return preg_replace($pattern, '', $value) ?? trim($value);
         }
 
         return trim($value, $charlist);
@@ -385,7 +390,9 @@ class Str
         if ($charlist === null) {
             $trim_default_characters = " \n\r\t\v\0";
 
-            return preg_replace('~^[\s\x{FEFF}\x{200B}\x{200E}' . $trim_default_characters . ']+~u', '', $value) ?? ltrim($value);
+            $pattern = '~^[\s\x{FEFF}\x{200B}\x{200E}' . $trim_default_characters . ']+~u';
+
+            return preg_replace($pattern, '', $value) ?? ltrim($value);
         }
 
         return ltrim($value, $charlist);

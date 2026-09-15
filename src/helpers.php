@@ -23,7 +23,7 @@ function bootloader(?Application $app = null): Bootloader
     /**
      * @deprecated
      */
-    \Webshr\Core\add_actions(['after_setup_theme', 'rest_api_init'], function () use ($bootloader) {
+    \Webshr\Core\add_actions([ 'after_setup_theme', 'rest_api_init' ], function () use ($bootloader) {
         $app = $bootloader->get_application();
 
         if ($app->has_been_bootstrapped()) {
@@ -31,10 +31,13 @@ function bootloader(?Application $app = null): Bootloader
         }
 
         \Webshr\Core\wp_die(
-            'Webshr Core failed to boot. Run <code>\\Webshr\\Core\\bootloader()->boot()</code>.<br><br>If you\'re using a Webshore Theme, you need to <a href="https://git.webshore.io/Webshr/Core/functions.php#L32">update <strong>webshr/functions.php:32</strong></a>',
+            'Webshr Core failed to boot. Run <code>\\Webshr\\Core\\bootloader()->boot()</code>.<br><br>'
+            . 'If you\'re using a Webshore Theme, you need to '
+            . '<a href="https://git.webshore.io/webshr/core/functions.php#L32">'
+            . 'update <strong>webshr/functions.php:32</strong></a>',
             '<code>\\Webshr\\Core\\bootloader()</code> was called incorrectly.',
             'Webshr Core &rsaquo; Boot Error',
-            'Check out the <a href="https://git.webshore.io/Webshr/Core">release notes</a> for more information.',
+            'Check out the <a href="https://git.webshore.io/webshr/core">release notes</a> for more information.',
         );
     }, 6);
 
@@ -62,7 +65,7 @@ function app($abstract = null, array $parameters = [])
  * @param  string|null $path
  * @return void
  */
-function require_files(string $dir = null): void
+function require_files(?string $dir = null): void
 {
     $loader = new Loader();
     $loader->load($dir);
@@ -202,7 +205,7 @@ function env($key, $default = null)
             return;
     }
 
-    if (($valueLength = strlen($value)) > 1 && $value[0] === '"' && $value[($valueLength - 1)] === '"') {
+    if (( $valueLength = strlen($value) ) > 1 && $value[0] === '"' && $value[ ( $valueLength - 1 ) ] === '"') {
         return substr($value, 1, -1);
     }
 

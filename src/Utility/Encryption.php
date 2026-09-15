@@ -62,7 +62,9 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
         $key = $this->ensure_key_length($key, $cipher);
         if (! static::supported($key, $cipher)) {
             $ciphers = implode(', ', array_keys(self::$supported_ciphers));
-            throw new RuntimeException("Unsupported cipher or incorrect key length. Supported ciphers are: {$ciphers}.");
+            throw new RuntimeException(
+                "Unsupported cipher or incorrect key length. Supported ciphers are: {$ciphers}."
+            );
         }
 
         $this->key    = $key;
@@ -123,7 +125,14 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
         }
 
         $iv = random_bytes(openssl_cipher_iv_length(strtolower($this->cipher)));
-        $value = \openssl_encrypt($serialize ? serialize($value) : $value, strtolower($this->cipher), $this->key, 0, $iv, $tag,);
+        $value = \openssl_encrypt(
+            $serialize ? serialize($value) : $value,
+            strtolower($this->cipher),
+            $this->key,
+            0,
+            $iv,
+            $tag,
+        );
         if ($value === false) {
             throw new Encrypt_Exception('Could not encrypt the data.');
         }
@@ -342,7 +351,9 @@ class Encryption implements Encrypter_Interface, String_Encrypter_Interface
         foreach ($keys as $key) {
             if (! static::supported($key, $this->cipher)) {
                 $ciphers = implode(', ', array_keys(self::$supported_ciphers));
-                throw new RuntimeException("Unsupported cipher or incorrect key length. Supported ciphers are: {$ciphers}.");
+                throw new RuntimeException(
+                    "Unsupported cipher or incorrect key length. Supported ciphers are: {$ciphers}."
+                );
             }
         }
 
